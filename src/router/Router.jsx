@@ -8,6 +8,7 @@ import Tips from '../pages/Tips';
 import Archive from '../pages/Archive';
 import Account from '../pages/Account';
 import Perform from '../pages/Perform';
+import { ProtectedRoute } from '../contexts/AuthContext';
 
 const Router = () => {
     return (
@@ -16,12 +17,11 @@ const Router = () => {
             <Route path="/price" element={<Pricing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/tips" element={<Tips />} />
-            <Route path="/archive" element={<Archive />} />
-            <Route path="/account" element={<Account />} />
-            <Route path="/perform" element={<Perform />} />
+            <Route path="/tips" element={<ProtectedRoute><Tips /></ProtectedRoute>} />
+            <Route path="/archive" element={<ProtectedRoute><Archive /></ProtectedRoute>} />
+            <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+            <Route path="/perform" element={<ProtectedRoute><Perform /></ProtectedRoute>} />
         </Routes>
     )
 }
-
 export default Router;

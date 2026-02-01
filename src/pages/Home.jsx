@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Hero from '../components/Hero'
 import SectionTitle from '../components/SectionTitle';
 import StepsCount from '../components/StepsCount';
@@ -15,8 +15,69 @@ import quinellaIcon from '../assets/price/king.svg';
 import proIcon from '../assets/price/award.svg';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { subscriptionAPI } from '../api/client';
 
 const Home = () => {
+    const [plans, setPlans] = useState([]);
+    const [loadingPlans, setLoadingPlans] = useState(false);
+
+    useEffect(() => {
+        fetchPlans();
+    }, []);
+
+    const fetchPlans = async () => {
+        try {
+            setLoadingPlans(true);
+            const response = await subscriptionAPI.getPlans();
+            setPlans(response || []);
+        } catch (err) {
+            console.error('Error fetching plans:', err);
+            // Use fallback static data if API fails
+            setPlans([
+                {
+                    id: 1,
+                    name: 'FREE',
+                    price: '0.00',
+                    description: 'Basic free plan',
+                },
+                {
+                    id: 2,
+                    name: 'PREMIUM',
+                    price: '2000.00',
+                    description: 'Premium plan',
+                },
+            ]);
+        } finally {
+            setLoadingPlans(false);
+        }
+    };
+
+    // Map backend plans to frontend display format
+    const getDisplayPlans = () => {
+        const planImages = {
+            'FREE': WinPlan,
+            'PREMIUM': QuinellaPlan,
+            'PRO': ProPlan,
+        };
+        const planIcons = {
+            'FREE': winIcon,
+            'PREMIUM': quinellaIcon,
+            'PRO': proIcon,
+        };
+
+        return plans.map(plan => ({
+            title: plan.name,
+            image: planImages[plan.name] || WinPlan,
+            icon: planIcons[plan.name] || winIcon,
+            price: `$${parseFloat(plan.price || 0).toFixed(2)}`,
+            description: plan.description || '',
+            features: [
+                'Daily tips',
+                'Performance analytics',
+                'Historical trends',
+            ],
+        }));
+    };
 
     const steps = [
         {
@@ -42,45 +103,6 @@ const Home = () => {
             badge: '04',
             heading: 'Improve Strategy',
             description: 'Refine and Approach your betting strategy based on performance insights.',
-        },
-    ]
-
-    const plans = [
-        {
-            title: 'Win',
-            image: WinPlan,
-            icon: winIcon,
-            price: '$9.99',
-            description: 'High-confidence picks for single winners.',
-            features: [
-                'Daily win tips',
-                'Beginner-friendly strategy',
-                'Performance analytics',
-            ],
-        },
-        {
-            title: 'Quinella',
-            image: QuinellaPlan,
-            icon: quinellaIcon,
-            price: '$19.99',
-            description: 'Pair-based predictions for two top finishers.',
-            features: [
-                'Daily quinella tips',
-                'Optimized risk-reward',
-                'Historical trends',
-            ],
-        },
-        {
-            title: 'Pro',
-            image: ProPlan,
-            icon: proIcon,
-            price: '$29.99',
-            description: 'Advanced picks and multi-race strategies.',
-            features: [
-                'All tip types unlocked',
-                'Pro analytics suite',
-                'Priority updates',
-            ],
         },
     ]
 
@@ -112,13 +134,19 @@ const Home = () => {
             <section className="price-plan my-2 md:my-3 py-3" id="price-plan">
                 <SectionTitle heading="Choose Your Winning Plan" desc="Select the Strategy that Matches Your Style" />
                 <div className="container md:w-4/5 mx-auto px-3">
-                    <div className="flex gap-4 flex-wrap md:flex-nowrap md:justify-center">
-                        {
-                            plans.map((plan, idx) => (
-                                <PriceItem plan={plan} key={idx} />
-                            ))
-                        }
-                    </div>
+                    {loadingPlans ? (
+                        <div className="text-center py-10">
+                            <p className="text-gray-600">Loading plans...</p>
+                        </div>
+                    ) : (
+                        <div className="flex gap-4 flex-wrap md:flex-nowrap md:justify-center">
+                            {
+                                getDisplayPlans().map((plan, idx) => (
+                                    <PriceItem plan={plan} key={idx} />
+                                ))
+                            }
+                        </div>
+                    )}
                 </div>
             </section>
 
